@@ -102,6 +102,8 @@ class LButton
 
 		void setbutton( LButtonState state);
 
+		void reset();
+
 	private:
 		//Top left position
 		SDL_Point mPosition;
@@ -144,6 +146,8 @@ class LBoard
 		void playgame();
 
 		int minimax( int row, int col, bool player );
+
+		void reset();
 		
 };
 
@@ -288,6 +292,12 @@ LButton::LButton()
 	mButtonState = false;
 }
 
+void LButton::reset()
+{
+	mCurrentState = BUTTON_STATE_MOUSE_OUT;
+	mButtonState = false;
+}
+
 void LButton::setPosition(int x, int y){
 	mPosition.x = x;
 	mPosition.y = y;
@@ -413,6 +423,21 @@ bool LButton::isbuttonset()
 }
 
 LBoard::LBoard()
+{
+	moves = 0;
+	turn = 0;
+	mWinLine = NO_WIN;
+	for (int i = 0; i < NO_RC; i++)
+	{
+		for (int j = 0; j < NO_RC; j++)
+		{
+			/* code */
+			board[i][j] = -1;
+		}
+	}
+}
+
+void LBoard::reset()
 {
 	moves = 0;
 	turn = 0;
@@ -782,6 +807,17 @@ void close()
 	SDL_Quit();
 }
 
+void reset()
+{
+	gBoard.reset();
+
+	for( int i = 0; i < TOTAL_BUTTONS; ++i )
+	{
+		gButtons[ i ].reset();
+	}
+	
+	LButton::turn = 0;
+}
 int main(int argc, char* args[])
 {
 	if(!init()){
@@ -813,6 +849,13 @@ int main(int argc, char* args[])
 						{
 							quit = true;
 						}
+
+						const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
+
+						if( ( currentKeyStates[ SDL_SCANCODE_RCTRL ] || currentKeyStates[ SDL_SCANCODE_LCTRL ] ) && currentKeyStates[ SDL_SCANCODE_R ] )
+						{
+							reset();
+						}
 						//Handle button events
 						gBoard.handleEvent( &e );
 
@@ -843,16 +886,26 @@ int main(int argc, char* args[])
 				// while(gBoard.iswin());
 				if(gBoard.isnotposs())
 				{	
+					// printf("Enter\n");
 					while( !quit )
 					{
 						while(SDL_PollEvent(&e) != 0)
 						{
 							if(e.type == SDL_QUIT )
 								quit = true;
-						}
-					}
-				}
 
+							const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
+
+							if( ( currentKeyStates[ SDL_SCANCODE_RCTRL ] || currentKeyStates[ SDL_SCANCODE_LCTRL ] ) && currentKeyStates[ SDL_SCANCODE_R ] )
+							{
+								reset();
+								break;
+							}
+						}
+						quit = true;
+					}
+					quit  = false;
+				}
 			}
 		}	
 	}
