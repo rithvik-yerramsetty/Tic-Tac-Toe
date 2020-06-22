@@ -613,9 +613,6 @@ void LBoard::handleEvent( SDL_Event* e)
 
 int LBoard::minimax( int row, int col, bool player )
 {
-	if( board[ row ][ col ] != -1 )
-		return 0;
-
 	if( checkgame( row, col, player ) != NO_WIN )
 	{
 		board[ row ][ col ] = -1;
@@ -627,17 +624,45 @@ int LBoard::minimax( int row, int col, bool player )
 
 	int ret = 0;
 
+	int flag = 1;
+
+	// printf(" board- %d\n", board[row][col]);
+
 	for( int curr_row = 0; curr_row < NO_RC; curr_row++)
 	{
 		for( int curr_col = 0; curr_col < NO_RC; curr_col++)
 		{
-			if( !player )
-				ret = std::max( ret, minimax( curr_row, curr_col, !player ) );
-			else
-				ret = std::min( ret, minimax( curr_row, curr_col, !player ) );				
+			if( board[ curr_row ][ curr_col ] == -1 )
+			{
+				int minimaxval = minimax( curr_row, curr_col, !player );
+				if( !player )
+				{
+					if(flag)
+					{
+						ret = minimaxval;
+						flag = 0;
+					}
+					else
+						ret = std::max( ret, minimaxval );
+				}
+
+				else
+				{
+					if(flag)
+					{
+						ret = minimaxval;
+						flag = 0;
+					}
+					else
+						ret = std::min( ret, minimaxval );
+				}
+				// if(row == 0 && col == 0 )
+					// printf("ret- %d\n", ret);
+			}				
 		}
 	}
 
+	
 	board[ row ][ col ] = -1;
 
 	return ret;
@@ -648,8 +673,7 @@ void LBoard::playgame()
 {
 	bool player = true;
 
-	int mvalue = -3
-	;
+	int mvalue = -2	;
 
 	int row = -1, col = -1;
 
@@ -660,6 +684,7 @@ void LBoard::playgame()
 			if( board[ curr_row ][ curr_col ] == -1 )
 			{
 				int curr_val = minimax( curr_row, curr_col, player );
+				// printf("i- %d j- %d, curr_val- %d\n", curr_row, curr_col, curr_val);
 				if(  curr_val > mvalue )
 				{
 					mvalue = curr_val;
